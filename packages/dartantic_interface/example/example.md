@@ -88,6 +88,36 @@ final result = await agent.send('Hello!');
 print(result.output); // Echoes back your input
 ```
 
+## Letta Provider Example
+
+You can also use the built-in Letta provider with either a self-hosted or cloud
+endpoint:
+
+```dart
+final provider = LettaProvider(
+  baseUrl: Uri.parse('http://cos.fibo.ninja:8283'),
+  apiKey: 'YOUR_API_KEY',
+  headers: {
+    'X-Organization': 'YOUR_ORG_ID',
+    'X-Project': 'YOUR_PROJECT_ID',
+  },
+  agentId: 'YOUR_AGENT_ID',
+);
+
+final agent = Agent.forProvider(provider);
+final result = await agent.send('Olá! Como você está?');
+print(result.output);
+```
+
+### Self-hosted vs. Cloud Endpoints
+
+- **Self-hosted**: Use `http://cos.fibo.ninja:8283` as `baseUrl`. No
+  additional headers are required by default, but you can pass any needed
+  reverse-proxy or auth headers via `headers`.
+- **Cloud**: Use `https://api.letta.com` as `baseUrl`. You must include
+  organization and project headers in `headers` (for example,
+  `X-Organization` and `X-Project`) alongside your API key.
+
 ## Dynamic Provider Registration
 
 If you'd like to participate in the named lookup of providers, you can add your
