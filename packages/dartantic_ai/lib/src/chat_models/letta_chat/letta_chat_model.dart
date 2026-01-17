@@ -50,7 +50,9 @@ class LettaChatModel extends ChatModel<LettaChatOptions> {
     JsonSchema? outputSchema,
   }) async* {
     if (outputSchema != null) {
-      throw UnsupportedError('Letta chat model does not support outputSchema');
+      _logger.warning(
+        'Letta chat model does not support outputSchema. Ignoring it.',
+      );
     }
 
     final chatResult = await _sendChat(messages, options: options);
