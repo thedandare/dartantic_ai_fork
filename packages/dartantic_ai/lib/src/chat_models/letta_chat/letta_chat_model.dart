@@ -7,6 +7,7 @@ import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
 
 import '../../retry_http_client.dart';
+import '../../shared/openai_utils.dart';
 import 'letta_chat_options.dart';
 
 export 'letta_chat_options.dart';
@@ -49,13 +50,11 @@ class LettaChatModel extends ChatModel<LettaChatOptions> {
     LettaChatOptions? options,
     JsonSchema? outputSchema,
   }) async* {
-    if (outputSchema != null) {
-      _logger.warning(
-        'Letta chat model does not support outputSchema. Ignoring it.',
-      );
-    }
-
-    final chatResult = await _sendChat(messages, options: options);
+    final chatResult = await _sendChat(
+      messages,
+      options: options,
+      outputSchema: outputSchema,
+    );
     yield* Stream.fromIterable([chatResult]);
   }
 
@@ -65,6 +64,7 @@ class LettaChatModel extends ChatModel<LettaChatOptions> {
   Future<ChatResult<ChatMessage>> _sendChat(
     List<ChatMessage> messages, {
     LettaChatOptions? options,
+    JsonSchema? outputSchema,
   }) async {
     final resolvedAgentId =
         options?.agentId ?? defaultOptions.agentId ?? agentId;
@@ -73,9 +73,15 @@ class LettaChatModel extends ChatModel<LettaChatOptions> {
       throw ArgumentError('agentId is required for the Letta chat model');
     }
 
+    final responseFormat =
+        outputSchema != null
+            ? _buildResponseFormat(outputSchema)
+            : options?.responseFormat ?? defaultOptions.responseFormat;
     final requestBody = jsonEncode({
       'messages': messages.map(_mapMessage).toList(),
       'stream': false,
+      if (responseFormat != null)
+        'model_settings': {'response_format': responseFormat},
     });
 
     final url = _baseUrl.resolve('/v1/agents/$resolvedAgentId/messages');
@@ -124,6 +130,22 @@ class LettaChatModel extends ChatModel<LettaChatOptions> {
         if (decoded['created_at'] != null) 'created_at': decoded['created_at'],
       },
     );
+  }
+
+  Map<String, dynamic> _buildResponseFormat(JsonSchema outputSchema) {
+    final schema = OpenAIUtils.prepareSchemaForOpenAI(
+      Map<String, dynamic>.from(outputSchema.schemaMap ?? const {}),
+      strict: true,
+    );
+
+    return {
+      'type': 'json_schema',
+      'json_schema': {
+        'name': 'output_schema',
+        'schema': schema,
+        'strict': true,
+      },
+    };
   }
 
   Map<String, String> _buildHeaders(LettaChatOptions? options) {

@@ -10,6 +10,7 @@ class LettaChatOptions extends ChatModelOptions {
     this.barePassword,
     this.requestHeaders,
     this.requestTimeout,
+    this.responseFormat,
   });
 
   /// Optional agent ID override per request.
@@ -23,4 +24,7 @@ class LettaChatOptions extends ChatModelOptions {
 
   /// Timeout for the Letta request.
   final Duration? requestTimeout;
+
+  /// Optional response format settings for the Letta agent.
+  final Map<String, dynamic>? responseFormat;
 }
