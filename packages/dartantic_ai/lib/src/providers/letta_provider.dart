@@ -71,6 +71,7 @@ class LettaProvider
         barePassword: options?.barePassword,
         requestHeaders: options?.requestHeaders,
         requestTimeout: options?.requestTimeout,
+        responseFormat: options?.responseFormat,
       ),
     );
   }
